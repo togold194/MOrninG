@@ -1,0 +1,314 @@
+import React, { useEffect, useMemo, useState } from "react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Progress } from "@/components/ui/progress";
+import { Badge } from "@/components/ui/badge";
+import { CalendarDays, Clock3, Flame, Trophy, BookOpen, Smartphone } from "lucide-react";
+import { motion } from "framer-motion";
+
+const wakeScore = (time) => {
+  if (!time) return 0;
+  if (time <= "06:00") return 6;
+  if (time <= "06:30") return 5;
+  if (time <= "07:00") return 4;
+  if (time <= "07:30") return 3;
+  if (time <= "08:00") return 2;
+  return 0;
+};
+
+const startScore = (wake, start) => {
+  if (!wake || !start) return 0;
+  const wakeMin = toMinutes(wake);
+  const startMin = toMinutes(start);
+  const diff = startMin - wakeMin;
+  if (diff < 0) return 0;
+  if (diff <= 10) return 5;
+  if (diff <= 20) return 4;
+  if (diff <= 30) return 2;
+  return 0;
+};
+
+const studyScore = (minutes) => {
+  const m = Number(minutes || 0);
+  if (m >= 60) return 6;
+  if (m >= 45) return 5;
+  if (m >= 30) return 4;
+  if (m >= 15) return 2;
+  return 0;
+};
+
+const penaltyScore = ({ didSecondSleep, phoneMinutes }) => {
+  let p = 0;
+  if (didSecondSleep) p -= 2;
+  if (Number(phoneMinutes || 0) >= 15) p -= 2;
+  return p;
+};
+
+function toMinutes(t) {
+  const [h, m] = t.split(":").map(Number);
+  return h * 60 + m;
+}
+
+function todayKey() {
+  const d = new Date();
+  const yyyy = d.getFullYear();
+  const mm = String(d.getMonth() + 1).padStart(2, "0");
+  const dd = String(d.getDate()).padStart(2, "0");
+  return `${yyyy}-${mm}-${dd}`;
+}
+
+function getStreak(entries) {
+  const keys = Object.keys(entries).sort().reverse();
+  let streak = 0;
+  let cursor = new Date();
+
+  for (;;) {
+    const key = cursor.toISOString().slice(0, 10);
+    const entry = entries[key];
+    if (entry && entry.total >= 10) {
+      streak += 1;
+      cursor.setDate(cursor.getDate() - 1);
+    } else {
+      break;
+    }
+  }
+
+  return streak;
+}
+
+export default function MorningStudyPointsApp() {
+  const [form, setForm] = useState({
+    wakeTime: "",
+    studyStartTime: "",
+    studyMinutes: "",
+    phoneMinutes: "",
+    didSecondSleep: false,
+    memo: "",
+  });
+
+  const [entries, setEntries] = useState(() => {
+    try {
+      return JSON.parse(localStorage.getItem("morning-study-points") || "{}");
+    } catch {
+      return {};
+    }
+  });
+
+  useEffect(() => {
+    localStorage.setItem("morning-study-points", JSON.stringify(entries));
+  }, [entries]);
+
+  const scores = useMemo(() => {
+    const wake = wakeScore(form.wakeTime);
+    const start = startScore(form.wakeTime, form.studyStartTime);
+    const study = studyScore(form.studyMinutes);
+    const penalty = penaltyScore(form);
+    const subtotal = wake + start + study + penalty;
+    return {
+      wake,
+      start,
+      study,
+      penalty,
+      subtotal: Math.max(0, subtotal),
+    };
+  }, [form]);
+
+  const streak = useMemo(() => getStreak(entries), [entries]);
+  const streakBonus = streak >= 7 ? 8 : streak >= 5 ? 5 : streak >= 3 ? 3 : 0;
+  const todaysTotal = scores.subtotal + streakBonus;
+  const weeklyTotal = useMemo(() => {
+    const now = new Date();
+    let total = 0;
+    for (let i = 0; i < 7; i++) {
+      const d = new Date(now);
+      d.setDate(now.getDate() - i);
+      const key = d.toISOString().slice(0, 10);
+      total += entries[key]?.total || 0;
+    }
+    return total;
+  }, [entries]);
+
+  const saveToday = () => {
+    const key = todayKey();
+    setEntries((prev) => ({
+      ...prev,
+      [key]: {
+        ...form,
+        ...scores,
+        streakBonus,
+        total: todaysTotal,
+        savedAt: new Date().toISOString(),
+      },
+    }));
+  };
+
+  const recent = useMemo(() => {
+    return Object.entries(entries)
+      .sort((a, b) => b[0].localeCompare(a[0]))
+      .slice(0, 7);
+  }, [entries]);
+
+  const grade = todaysTotal >= 16 ? "神" : todaysTotal >= 12 ? "強い" : todaysTotal >= 8 ? "合格" : todaysTotal >= 4 ? "微妙" : "立て直し";
+  const progress = Math.min(100, (todaysTotal / 18) * 100);
+
+  return (
+    <div className="min-h-screen bg-zinc-950 text-zinc-100 p-4 md:p-8">
+      <div className="max-w-6xl mx-auto grid gap-6">
+        <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }}>
+          <Card className="bg-zinc-900 border-zinc-800 rounded-3xl shadow-2xl">
+            <CardHeader>
+              <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
+                <div>
+                  <CardTitle className="text-3xl font-bold tracking-tight">朝勉ポイント</CardTitle>
+                  <p className="text-zinc-400 mt-2">起床 → 勉強開始 → 継続 を点数化して、朝を仕組みで取る。</p>
+                </div>
+                <div className="flex gap-2 flex-wrap">
+                  <Badge className="rounded-full text-sm px-4 py-1">今日の評価: {grade}</Badge>
+                  <Badge variant="secondary" className="rounded-full text-sm px-4 py-1 bg-zinc-800 text-zinc-100">連続 {streak} 日</Badge>
+                </div>
+              </div>
+            </CardHeader>
+          </Card>
+        </motion.div>
+
+        <div className="grid lg:grid-cols-3 gap-6">
+          <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.05 }} className="lg:col-span-2">
+            <Card className="bg-zinc-900 border-zinc-800 rounded-3xl h-full">
+              <CardHeader>
+                <CardTitle className="text-xl">今日を記録する</CardTitle>
+              </CardHeader>
+              <CardContent className="grid md:grid-cols-2 gap-5">
+                <div className="space-y-2">
+                  <Label>起床時刻</Label>
+                  <Input type="time" value={form.wakeTime} onChange={(e) => setForm({ ...form, wakeTime: e.target.value })} className="bg-zinc-950 border-zinc-700 rounded-2xl" />
+                </div>
+                <div className="space-y-2">
+                  <Label>勉強開始時刻</Label>
+                  <Input type="time" value={form.studyStartTime} onChange={(e) => setForm({ ...form, studyStartTime: e.target.value })} className="bg-zinc-950 border-zinc-700 rounded-2xl" />
+                </div>
+                <div className="space-y-2">
+                  <Label>朝勉時間（分）</Label>
+                  <Input type="number" placeholder="30" value={form.studyMinutes} onChange={(e) => setForm({ ...form, studyMinutes: e.target.value })} className="bg-zinc-950 border-zinc-700 rounded-2xl" />
+                </div>
+                <div className="space-y-2">
+                  <Label>起床後スマホ時間（分）</Label>
+                  <Input type="number" placeholder="0" value={form.phoneMinutes} onChange={(e) => setForm({ ...form, phoneMinutes: e.target.value })} className="bg-zinc-950 border-zinc-700 rounded-2xl" />
+                </div>
+                <div className="flex items-center gap-3 md:col-span-2 rounded-2xl border border-zinc-800 p-4 bg-zinc-950">
+                  <input id="second-sleep" type="checkbox" checked={form.didSecondSleep} onChange={(e) => setForm({ ...form, didSecondSleep: e.target.checked })} className="h-4 w-4" />
+                  <Label htmlFor="second-sleep" className="cursor-pointer">二度寝した</Label>
+                </div>
+                <div className="space-y-2 md:col-span-2">
+                  <Label>メモ</Label>
+                  <textarea
+                    value={form.memo}
+                    onChange={(e) => setForm({ ...form, memo: e.target.value })}
+                    placeholder="今日は何が良かったか / 何で崩れたか"
+                    className="w-full min-h-28 rounded-2xl bg-zinc-950 border border-zinc-700 p-3 text-sm outline-none"
+                  />
+                </div>
+                <div className="md:col-span-2 flex gap-3 flex-wrap">
+                  <Button onClick={saveToday} className="rounded-2xl px-6">今日を保存</Button>
+                  <Button variant="secondary" onClick={() => setForm({ wakeTime: "", studyStartTime: "", studyMinutes: "", phoneMinutes: "", didSecondSleep: false, memo: "" })} className="rounded-2xl bg-zinc-800">リセット</Button>
+                </div>
+              </CardContent>
+            </Card>
+          </motion.div>
+
+          <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}>
+            <Card className="bg-zinc-900 border-zinc-800 rounded-3xl h-full">
+              <CardHeader>
+                <CardTitle className="text-xl">今日のスコア</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-5">
+                <div>
+                  <div className="flex justify-between text-sm mb-2"><span>合計</span><span>{todaysTotal} 点</span></div>
+                  <Progress value={progress} className="h-3 rounded-full" />
+                </div>
+
+                <div className="grid gap-3">
+                  <ScoreRow icon={<Clock3 className="w-4 h-4" />} label="起床" value={scores.wake} sub="6点満点" />
+                  <ScoreRow icon={<BookOpen className="w-4 h-4" />} label="開始速度" value={scores.start} sub="5点満点" />
+                  <ScoreRow icon={<Trophy className="w-4 h-4" />} label="朝勉時間" value={scores.study} sub="6点満点" />
+                  <ScoreRow icon={<Smartphone className="w-4 h-4" />} label="ペナルティ" value={scores.penalty} sub="-4点まで" />
+                  <ScoreRow icon={<Flame className="w-4 h-4" />} label="連続ボーナス" value={streakBonus} sub="最大+8点" />
+                </div>
+
+                <div className="rounded-2xl border border-zinc-800 p-4 bg-zinc-950 text-sm text-zinc-300">
+                  目安: 10点以上で朝成功、14点以上でかなり強い。まずは毎日10点を切らないことを狙う設計。
+                </div>
+              </CardContent>
+            </Card>
+          </motion.div>
+        </div>
+
+        <div className="grid lg:grid-cols-2 gap-6">
+          <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.15 }}>
+            <Card className="bg-zinc-900 border-zinc-800 rounded-3xl">
+              <CardHeader>
+                <CardTitle className="text-xl flex items-center gap-2"><CalendarDays className="w-5 h-5" />最近7日</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-3">
+                  {recent.length === 0 ? (
+                    <div className="text-zinc-400 text-sm">まだ記録がない。今日から1日目を作れ。</div>
+                  ) : (
+                    recent.map(([date, entry]) => (
+                      <div key={date} className="rounded-2xl border border-zinc-800 p-4 bg-zinc-950 flex items-center justify-between gap-4">
+                        <div>
+                          <div className="font-medium">{date}</div>
+                          <div className="text-sm text-zinc-400">起床 {entry.wakeTime || "-"} / 開始 {entry.studyStartTime || "-"} / {entry.studyMinutes || 0}分</div>
+                        </div>
+                        <Badge className="rounded-full px-3 py-1 text-sm">{entry.total} 点</Badge>
+                      </div>
+                    ))
+                  )}
+                </div>
+              </CardContent>
+            </Card>
+          </motion.div>
+
+          <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }}>
+            <Card className="bg-zinc-900 border-zinc-800 rounded-3xl h-full">
+              <CardHeader>
+                <CardTitle className="text-xl">今週の状況</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="rounded-2xl bg-zinc-950 border border-zinc-800 p-5">
+                  <div className="text-sm text-zinc-400">7日合計</div>
+                  <div className="text-4xl font-bold mt-1">{weeklyTotal}<span className="text-lg font-medium text-zinc-400 ml-1">pts</span></div>
+                </div>
+                <div className="rounded-2xl bg-zinc-950 border border-zinc-800 p-5">
+                  <div className="text-sm text-zinc-400">現在の連続記録</div>
+                  <div className="text-4xl font-bold mt-1">{streak}<span className="text-lg font-medium text-zinc-400 ml-1">days</span></div>
+                </div>
+                <div className="rounded-2xl bg-zinc-950 border border-zinc-800 p-5 text-sm text-zinc-300 leading-6">
+                  このアプリは localStorage 保存だから、まずは試作としてそのまま使える。次にやるなら、通知、月間グラフ、報酬システム、Googleログイン、スマホ最適化を足して本物にできる。
+                </div>
+              </CardContent>
+            </Card>
+          </motion.div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function ScoreRow({ icon, label, value, sub }) {
+  return (
+    <div className="rounded-2xl border border-zinc-800 bg-zinc-950 p-4 flex items-center justify-between gap-3">
+      <div className="flex items-center gap-3">
+        <div className="w-9 h-9 rounded-2xl bg-zinc-900 border border-zinc-800 flex items-center justify-center text-zinc-300">
+          {icon}
+        </div>
+        <div>
+          <div className="font-medium">{label}</div>
+          <div className="text-xs text-zinc-400">{sub}</div>
+        </div>
+      </div>
+      <div className="text-lg font-semibold">{value}</div>
+    </div>
+  );
+}

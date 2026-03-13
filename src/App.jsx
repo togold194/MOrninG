@@ -14,11 +14,11 @@ const COLORS = {
 
 function wakeScore(time) {
   if (!time) return 0;
-  if (time <= "06:00") return 6;
-  if (time <= "06:30") return 5;
-  if (time <= "07:00") return 4;
-  if (time <= "07:30") return 3;
-  if (time <= "08:00") return 2;
+  if (time <= "05:00") return 15;
+  if (time <= "05:30") return 10;
+  if (time <= "06:00") return 5;
+  if (time <= "06:30") return 1;
+  if (time <= "07:00") return 0;
   return 0;
 }
 
@@ -39,10 +39,10 @@ function startScore(wake, start) {
 
 function studyScore(minutes) {
   const m = Number(minutes || 0);
-  if (m >= 60) return 6;
-  if (m >= 45) return 5;
-  if (m >= 30) return 4;
-  if (m >= 15) return 2;
+  if (m >= 60) return 20;
+  if (m >= 40) return 10;
+  if (m >= 30) return 5;
+  if (m >= 0) return 0;
   return 0;
 }
 

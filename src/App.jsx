@@ -474,9 +474,9 @@ export default function App() {
             </div>
 
             <div style={{ display: "grid", gap: 12 }}>
-              <ScoreRow emoji="⏰" label="起床" value={scores.wake} sub="6点満点" />
+              <ScoreRow emoji="⏰" label="起床" value={scores.wake} sub="15点満点" />
               <ScoreRow emoji="📚" label="開始速度" value={scores.start} sub="5点満点" />
-              <ScoreRow emoji="🏆" label="朝勉時間" value={scores.study} sub="6点満点" />
+              <ScoreRow emoji="🏆" label="朝勉時間" value={scores.study} sub="20点満点" />
               <ScoreRow emoji="📱" label="ペナルティ" value={scores.penalty} sub="-4点まで" />
               <ScoreRow emoji="🔥" label="連続ボーナス" value={streakBonus} sub="最大+8点" />
             </div>

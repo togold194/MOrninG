@@ -324,7 +324,7 @@ export default function App() {
           >
             <div>
               <div style={{ fontSize: 32, fontWeight: 900, letterSpacing: -0.5 }}>
-                朝、朝だけ頑張るんだ
+                朝　朝だけ頑張るんだ
               </div>
               <div style={{ marginTop: 8, color: COLORS.sub }}>
                 「出来の良い奴と渡り合う手段は一つ　人より多く時間をかける事だけだ」

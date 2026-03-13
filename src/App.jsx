@@ -327,7 +327,7 @@ export default function App() {
                 朝勉ポイント
               </div>
               <div style={{ marginTop: 8, color: COLORS.sub }}>
-                起床 → 勉強開始 → 継続 を点数化して、朝を仕組みで取る。
+                出来の良い奴と渡り合う手段は一つ　人より多く時間をかける事だけだ
               </div>
             </div>
             <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
@@ -391,7 +391,7 @@ export default function App() {
 
               <div>
                 <div style={{ marginBottom: 8, fontWeight: 700 }}>
-                  起床後スマホ時間（分）
+                  起床後浪費時間（分）
                 </div>
                 <input
                   type="number"
@@ -515,7 +515,7 @@ export default function App() {
             <div style={{ display: "grid", gap: 12 }}>
               {recent.length === 0 ? (
                 <div style={{ color: COLORS.sub, fontSize: 14 }}>
-                  まだ記録がない。今日から1日目を作れ。
+                  何やってるんですか？　勉強してください！
                 </div>
               ) : (
                 recent.map(([date, entry]) => (
@@ -597,8 +597,8 @@ export default function App() {
                   fontSize: 14,
                 }}
               >
-                このアプリは localStorage 保存。まずは試作としてそのまま使える。
-                次にやるなら、通知、月間グラフ、報酬システム、スマホ最適化を足せばさらに強くなる。
+                2400時間勉強するんだろ？朝起きるだけで金稼げると思えって。人生のボーナスステージむだにすんな
+                自分の感情を信頼するのはやめなさい　自分の目的を達成できる環境を自ら設定する能力こそが何よりも重要
               </div>
             </div>
           </div>

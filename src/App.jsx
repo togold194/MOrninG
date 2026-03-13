@@ -324,10 +324,10 @@ export default function App() {
           >
             <div>
               <div style={{ fontSize: 32, fontWeight: 900, letterSpacing: -0.5 }}>
-                朝勉ポイント
+                朝、朝だけ頑張るんだ
               </div>
               <div style={{ marginTop: 8, color: COLORS.sub }}>
-                出来の良い奴と渡り合う手段は一つ　人より多く時間をかける事だけだ
+                「出来の良い奴と渡り合う手段は一つ　人より多く時間をかける事だけだ」
               </div>
             </div>
             <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
@@ -424,7 +424,7 @@ export default function App() {
                   }
                 />
                 <label htmlFor="second-sleep" style={{ cursor: "pointer", fontWeight: 700 }}>
-                  二度寝した
+                  二度寝/Creepynuts
                 </label>
               </div>
 
@@ -598,7 +598,7 @@ export default function App() {
                 }}
               >
                 2400時間勉強するんだろ？朝起きるだけで金稼げると思えって。人生のボーナスステージむだにすんな
-                自分の感情を信頼するのはやめなさい　自分の目的を達成できる環境を自ら設定する能力こそが何よりも重要
+                お前がそうやって布団被ってる間に古賀美玲は勉強してんねんで
               </div>
             </div>
           </div>

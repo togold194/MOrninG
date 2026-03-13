@@ -255,15 +255,15 @@ export default function App() {
   }, [entries]);
 
   const grade =
-    todaysTotal >= 16
+    todaysTotal >= 40
       ? "神"
-      : todaysTotal >= 12
+      : todaysTotal >= 30
       ? "強い"
-      : todaysTotal >= 8
+      : todaysTotal >= 20
       ? "合格"
-      : todaysTotal >= 4
+      : todaysTotal >= 10
       ? "微妙"
-      : "立て直し";
+      : "勉強してください！";
 
   const progress = Math.min(100, (todaysTotal / 18) * 100);
 

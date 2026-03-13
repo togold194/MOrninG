@@ -327,7 +327,7 @@ export default function App() {
                 朝　朝だけ頑張るんだ
               </div>
               <div style={{ marginTop: 8, color: COLORS.sub }}>
-                「出来の良い奴と渡り合う手段は一つ　人より多く時間をかける事だけだ」
+                お前が布団被ってる間に古賀美玲は勉強してんねんで
               </div>
             </div>
             <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
